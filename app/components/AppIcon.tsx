@@ -11,7 +11,7 @@ export function AppIcon({ className = "w-8 h-8" }: { className?: string }) {
         height="32"
         rx="10"
         fill="currentColor"
-        className="text-blue-500"
+        className="text-amber-500"
       />
       <path
         d="M8 8h6v6H8V8zm10 0h6v6h-6V8zM8 18h6v6H8v-6zm10 0h6v6h-6v-6z"

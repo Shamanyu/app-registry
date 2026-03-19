@@ -15,22 +15,23 @@ html {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.25);
+  background: rgba(214, 211, 209, 0.25);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.4);
+  background: rgba(214, 211, 209, 0.4);
 }
 
-/* Minimal gradient — soft top glow only */
+/* Warm gradient — soft amber glow */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   background: radial-gradient(
-    ellipse 100% 80% at 50% -20%,
-    rgba(59, 130, 246, 0.06) 0%,
-    transparent 50%
+    ellipse 120% 100% at 50% -30%,
+    rgba(245, 158, 11, 0.08) 0%,
+    rgba(28, 25, 23, 0.4) 40%,
+    transparent 70%
   );
   pointer-events: none;
   z-index: 0;

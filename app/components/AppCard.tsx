@@ -51,11 +51,11 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
       rel="noopener noreferrer"
       className={`
         group relative flex flex-col overflow-hidden rounded-2xl
-        bg-slate-900/50 border border-slate-800/80
-        hover:border-slate-700 hover:bg-slate-900/70
+        bg-white/5 backdrop-blur-xl border border-white/10
+        hover:border-amber-500/30 hover:bg-white/10
         transition-all duration-200
         active:scale-[0.99] hover:-translate-y-0.5
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0b]
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0a09]
         ${large ? "min-h-[280px] sm:min-h-[320px]" : "min-h-[260px] sm:min-h-[280px]"}
       `}
     >
@@ -64,7 +64,7 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
         {showPreview ? (
           <>
             {!previewLoaded && (
-              <div className="absolute inset-0 bg-slate-800/50 animate-pulse" />
+              <div className="absolute inset-0 bg-stone-800/50 animate-pulse" />
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -80,11 +80,11 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
             />
           </>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-slate-800/50">
-            <Globe className="w-10 h-10 text-slate-600" />
+          <div className="absolute inset-0 flex items-center justify-center bg-stone-800/50">
+            <Globe className="w-10 h-10 text-stone-600" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-stone-950/80 via-transparent to-transparent pointer-events-none" />
       </div>
 
       {/* Content */}
@@ -96,17 +96,17 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
               <img
                 src={project.icon_url}
                 alt=""
-                className={`rounded-lg object-cover flex-shrink-0 ring-1 ring-slate-700 ${large ? "w-8 h-8" : "w-6 h-6"}`}
+                className={`rounded-lg object-cover flex-shrink-0 ring-1 ring-white/20 ${large ? "w-8 h-8" : "w-6 h-6"}`}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.display = "none";
                 }}
               />
             ) : null}
             <div className="min-w-0">
-              <h3 className={`font-semibold text-slate-100 leading-tight truncate ${large ? "text-lg" : "text-base"}`}>
+              <h3 className={`font-semibold text-stone-100 leading-tight truncate ${large ? "text-lg" : "text-base"}`}>
                 {project.name}
               </h3>
-              <p className="text-xs text-slate-500 truncate mt-0.5">
+              <p className="text-xs text-stone-500 truncate mt-0.5">
                 {project.owner ? `${project.owner} · ${hostname}` : hostname}
               </p>
             </div>
@@ -115,17 +115,17 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
             {onEdit && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(project); }}
-                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800/50 transition-colors"
+                className="p-1.5 rounded-lg text-stone-500 hover:text-stone-300 hover:bg-white/10 transition-colors"
                 aria-label="Edit app"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
             )}
-            <ExternalLink className="w-4 h-4 text-slate-500 flex-shrink-0 transition-all group-hover:text-blue-400 group-hover:translate-x-0.5" />
+            <ExternalLink className="w-4 h-4 text-stone-500 flex-shrink-0 transition-all group-hover:text-amber-400 group-hover:translate-x-0.5" />
           </div>
         </div>
 
-        <p className="text-slate-400 leading-relaxed line-clamp-2 flex-1 text-sm">
+        <p className="text-stone-400 leading-relaxed line-clamp-2 flex-1 text-sm">
           {project.description}
         </p>
 
