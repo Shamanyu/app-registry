@@ -5,6 +5,7 @@ export interface Project {
   url: string;
   description: string;
   icon_url: string | null;
+  owner: string | null;
 }
 
 export interface NewProject {
@@ -12,4 +13,5 @@ export interface NewProject {
   url: string;
   description: string;
   icon_url?: string;
+  owner?: string;
 }
