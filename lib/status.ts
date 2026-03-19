@@ -1,5 +1,6 @@
+import { createClient } from "@supabase/supabase-js";
+
 const CACHE_TTL_MS = 15 * 60 * 1000; // 15 minutes
-const cache = new Map<string, { live: boolean; timestamp: number }>();
 
 const ERROR_PATTERNS = [
   /\b404\b/i,
@@ -69,6 +70,13 @@ function looksLikeNonLivePage(html: string): boolean {
   return false;
 }
 
+function getSupabaseAdmin() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
+
 export async function checkStatus(url: string): Promise<boolean> {
   try {
     new URL(url);
@@ -76,9 +84,21 @@ export async function checkStatus(url: string): Promise<boolean> {
     return false;
   }
 
-  const cached = cache.get(url);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
-    return cached.live;
+  const supabase = getSupabaseAdmin();
+  if (supabase) {
+    const { data, error } = await supabase
+      .from("status_cache")
+      .select("live, created_at")
+      .eq("url", url)
+      .single();
+
+    if (!error && data) {
+      const createdAt = new Date(data.created_at).getTime();
+      const age = Date.now() - createdAt;
+      if (age < CACHE_TTL_MS) {
+        return data.live;
+      }
+    }
   }
 
   let live = false;
@@ -105,6 +125,12 @@ export async function checkStatus(url: string): Promise<boolean> {
     live = false;
   }
 
-  cache.set(url, { live, timestamp: Date.now() });
+  if (supabase) {
+    await supabase.from("status_cache").upsert(
+      { url, live, created_at: new Date().toISOString() },
+      { onConflict: "url" }
+    );
+  }
+
   return live;
 }

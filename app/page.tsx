@@ -2,7 +2,7 @@ import { getProjects } from "@/lib/supabase";
 import { checkStatus } from "@/lib/status";
 import { LaunchpadClient } from "@/app/components/LaunchpadClient";
 
-export const revalidate = 0;
+export const revalidate = 300; // ISR: cache 5 min for fast repeat visits
 
 export default async function HomePage() {
   const projects = await getProjects();
