@@ -10,10 +10,9 @@ interface AppCardProps {
   live?: boolean;
   large?: boolean;
   onEdit?: (project: Project) => void;
-  fetchPriority?: "high" | "low" | "auto";
 }
 
-export function AppCard({ project, live = false, large = false, onEdit, fetchPriority = "auto" }: AppCardProps) {
+export function AppCard({ project, live = false, large = false, onEdit }: AppCardProps) {
   const [previewError, setPreviewError] = useState(false);
   const [previewLoaded, setPreviewLoaded] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
@@ -75,8 +74,7 @@ export function AppCard({ project, live = false, large = false, onEdit, fetchPri
               className={`absolute inset-0 w-full h-full object-cover object-top transition-opacity duration-300 ${
                 previewLoaded ? "opacity-100" : "opacity-0"
               }`}
-              loading={fetchPriority === "high" ? "eager" : "lazy"}
-              {...(fetchPriority !== "auto" && { fetchPriority })}
+              loading="lazy"
               onLoad={() => setPreviewLoaded(true)}
               onError={handleError}
             />

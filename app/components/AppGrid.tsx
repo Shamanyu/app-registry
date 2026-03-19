@@ -40,8 +40,8 @@ export function AppGrid({ projects, statusMap, onEdit }: AppGridProps) {
           count === 1 ? "grid-cols-1 max-w-lg" : count === 2 ? "grid-cols-1 sm:grid-cols-2 max-w-3xl" : "grid-cols-1 sm:grid-cols-3"
         }`}
       >
-        {projects.map((project, i) => (
-          <AppCard key={project.id} project={project} live={statusMap[project.id]} large onEdit={onEdit} fetchPriority={i < 2 ? "high" : "low"} />
+        {projects.map((project) => (
+          <AppCard key={project.id} project={project} live={statusMap[project.id]} large onEdit={onEdit} />
         ))}
       </div>
     );
@@ -49,8 +49,8 @@ export function AppGrid({ projects, statusMap, onEdit }: AppGridProps) {
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {projects.map((project, i) => (
-        <AppCard key={project.id} project={project} live={statusMap[project.id]} onEdit={onEdit} fetchPriority={i < 2 ? "high" : "low"} />
+      {projects.map((project) => (
+        <AppCard key={project.id} project={project} live={statusMap[project.id]} onEdit={onEdit} />
       ))}
     </div>
   );
