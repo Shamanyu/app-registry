@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCachedPreview, fetchAndCachePreview } from "@/lib/preview-cache";
 
-const CACHE_HEADERS = "public, max-age=3600, stale-while-revalidate=86400";
+// Safari/WebKit caches 302 redirects for images incorrectly (Bug #77538), causing
+// images to fail on second load. no-store prevents that; our server responds fast anyway.
+const NO_CACHE = "no-store, must-revalidate";
 
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
@@ -22,13 +24,13 @@ export async function GET(request: NextRequest) {
   if (cached?.previewUrl) {
     if (cached.isFresh) {
       return NextResponse.redirect(cached.previewUrl, {
-        headers: { "Cache-Control": CACHE_HEADERS },
+        headers: { "Cache-Control": NO_CACHE },
       });
     }
     if (!cached.isFresh) {
       fetchAndCachePreview(url, width).catch(() => {});
       return NextResponse.redirect(cached.previewUrl, {
-        headers: { "Cache-Control": CACHE_HEADERS },
+        headers: { "Cache-Control": NO_CACHE },
       });
     }
   }
@@ -36,7 +38,7 @@ export async function GET(request: NextRequest) {
   const previewUrl = await fetchAndCachePreview(url, width);
   if (previewUrl) {
     return NextResponse.redirect(previewUrl, {
-      headers: { "Cache-Control": CACHE_HEADERS },
+      headers: { "Cache-Control": NO_CACHE },
     });
   }
 
