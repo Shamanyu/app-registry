@@ -1,30 +1,21 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { ExternalLink, Globe, Pencil } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { getPreviewUrl } from "@/lib/preview";
 
 interface AppCardProps {
   project: Project;
+  live?: boolean;
   large?: boolean;
   onEdit?: (project: Project) => void;
 }
 
-export function AppCard({ project, large = false, onEdit }: AppCardProps) {
+export function AppCard({ project, live = false, large = false, onEdit }: AppCardProps) {
   const [previewError, setPreviewError] = useState(false);
   const [previewLoaded, setPreviewLoaded] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
-  const [liveStatus, setLiveStatus] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    fetch(`/api/status?url=${encodeURIComponent(project.url)}`)
-      .then((r) => r.json())
-      .then((data) => { if (!cancelled) setLiveStatus(data.live); })
-      .catch(() => { if (!cancelled) setLiveStatus(false); });
-    return () => { cancelled = true; };
-  }, [project.url]);
 
   const hostname = (() => {
     try {
@@ -34,8 +25,13 @@ export function AppCard({ project, large = false, onEdit }: AppCardProps) {
     }
   })();
 
-  const baseUrl = getPreviewUrl(project.url, large ? 480 : 400);
-  const previewUrl = baseUrl ? `${baseUrl}${retryKey > 0 ? `&_r=${retryKey}` : ""}` : "";
+  const storedPreview = project.preview_url;
+  const apiPreview = getPreviewUrl(project.url, large ? 480 : 400);
+  const previewUrl = storedPreview
+    ? storedPreview
+    : apiPreview
+      ? `${apiPreview}${retryKey > 0 ? `&_r=${retryKey}` : ""}`
+      : "";
   const showPreview = previewUrl && !previewError;
 
   const handleError = useCallback(() => {
@@ -55,12 +51,11 @@ export function AppCard({ project, large = false, onEdit }: AppCardProps) {
       rel="noopener noreferrer"
       className={`
         group relative flex flex-col overflow-hidden rounded-2xl
-        bg-white/[0.03] backdrop-blur-md
-        border border-white/[0.06] hover:border-cyan-500/30
-        transition-all duration-300 ease-out
-        hover:bg-white/[0.06] hover:shadow-xl hover:shadow-cyan-500/10
-        active:scale-[0.99] hover:-translate-y-1
-        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400
+        bg-slate-900/50 border border-slate-800/80
+        hover:border-slate-700 hover:bg-slate-900/70
+        transition-all duration-200
+        active:scale-[0.99] hover:-translate-y-0.5
+        focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0a0b]
         ${large ? "min-h-[280px] sm:min-h-[320px]" : "min-h-[260px] sm:min-h-[280px]"}
       `}
     >
@@ -69,7 +64,7 @@ export function AppCard({ project, large = false, onEdit }: AppCardProps) {
         {showPreview ? (
           <>
             {!previewLoaded && (
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/10 to-violet-500/10 animate-pulse" />
+              <div className="absolute inset-0 bg-slate-800/50 animate-pulse" />
             )}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
@@ -85,11 +80,11 @@ export function AppCard({ project, large = false, onEdit }: AppCardProps) {
             />
           </>
         ) : (
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-cyan-500/10 to-violet-500/10">
-            <Globe className="w-10 h-10 text-cyan-400/30" />
+          <div className="absolute inset-0 flex items-center justify-center bg-slate-800/50">
+            <Globe className="w-10 h-10 text-slate-600" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent pointer-events-none" />
       </div>
 
       {/* Content */}
@@ -101,17 +96,17 @@ export function AppCard({ project, large = false, onEdit }: AppCardProps) {
               <img
                 src={project.icon_url}
                 alt=""
-                className={`rounded-lg object-cover flex-shrink-0 ring-1 ring-white/10 ${large ? "w-8 h-8" : "w-6 h-6"}`}
+                className={`rounded-lg object-cover flex-shrink-0 ring-1 ring-slate-700 ${large ? "w-8 h-8" : "w-6 h-6"}`}
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.display = "none";
                 }}
               />
             ) : null}
             <div className="min-w-0">
-              <h3 className={`font-semibold text-white leading-tight truncate ${large ? "text-lg" : "text-base"}`}>
+              <h3 className={`font-semibold text-slate-100 leading-tight truncate ${large ? "text-lg" : "text-base"}`}>
                 {project.name}
               </h3>
-              <p className="text-xs text-cyan-300/50 truncate mt-0.5">
+              <p className="text-xs text-slate-500 truncate mt-0.5">
                 {project.owner ? `${project.owner} · ${hostname}` : hostname}
               </p>
             </div>
@@ -120,35 +115,30 @@ export function AppCard({ project, large = false, onEdit }: AppCardProps) {
             {onEdit && (
               <button
                 onClick={(e) => { e.preventDefault(); e.stopPropagation(); onEdit(project); }}
-                className="p-1.5 rounded-lg text-white/30 hover:text-violet-400 hover:bg-white/10 transition-colors"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800/50 transition-colors"
                 aria-label="Edit app"
               >
                 <Pencil className="w-3.5 h-3.5" />
               </button>
             )}
-            <ExternalLink className="w-4 h-4 text-cyan-400/40 flex-shrink-0 transition-all group-hover:text-cyan-400 group-hover:translate-x-0.5" />
+            <ExternalLink className="w-4 h-4 text-slate-500 flex-shrink-0 transition-all group-hover:text-blue-400 group-hover:translate-x-0.5" />
           </div>
         </div>
 
-        <p className="text-white/55 leading-relaxed line-clamp-2 flex-1 text-sm">
+        <p className="text-slate-400 leading-relaxed line-clamp-2 flex-1 text-sm">
           {project.description}
         </p>
 
         <div className="flex items-center gap-1.5 pt-1">
-          {liveStatus === null ? (
+          {live ? (
             <>
-              <div className="w-1.5 h-1.5 rounded-full bg-amber-400/70 animate-pulse" />
-              <span className="text-xs text-amber-400/70">Checking…</span>
-            </>
-          ) : liveStatus ? (
-            <>
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
-              <span className="text-xs text-emerald-400/70">Live</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+              <span className="text-xs text-emerald-400/90">Live</span>
             </>
           ) : (
             <>
-              <div className="w-1.5 h-1.5 rounded-full bg-red-400/80" />
-              <span className="text-xs text-red-400/70">Offline</span>
+              <div className="w-1.5 h-1.5 rounded-full bg-red-500/80" />
+              <span className="text-xs text-red-400/90">Offline</span>
             </>
           )}
         </div>

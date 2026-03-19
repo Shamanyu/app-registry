@@ -6,6 +6,7 @@ export interface Project {
   description: string;
   icon_url: string | null;
   owner: string | null;
+  preview_url: string | null;
 }
 
 export interface NewProject {

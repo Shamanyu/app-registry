@@ -38,10 +38,14 @@ create policy "Allow public insert access" on public.projects for insert with ch
 cp .env.local.example .env.local
 ```
 
-Fill in your Supabase project URL and anon key from:
+Fill in your Supabase project URL, anon key, and **service role key** (for storing preview screenshots) from:
 `https://supabase.com/dashboard/project/<id>/settings/api`
 
-### 3. Run locally
+### 3. Create Storage bucket (for preview screenshots)
+
+In Supabase Dashboard: **Storage** → **New bucket** → Name: `project-previews`, Public: **Yes**
+
+### 4. Run locally
 
 ```bash
 npm install
@@ -57,6 +61,7 @@ Open [http://localhost:3000](http://localhost:3000).
 3. Add the environment variables in Vercel's project settings:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY` (for storing preview screenshots)
 4. Deploy — done!
 
 ## Project Structure

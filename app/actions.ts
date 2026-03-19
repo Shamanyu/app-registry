@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import type { NewProject } from "@/lib/types";
+import { fetchAndStorePreview } from "@/lib/preview-storage";
 
 function getServerSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -42,17 +43,31 @@ export async function registerProject(
 
   const supabase = getServerSupabase();
 
-  const { error } = await supabase.from("projects").insert({
-    name: name.trim(),
-    url: normalizedUrl,
-    description: description.trim(),
-    icon_url: icon_url?.trim() || null,
-    owner: owner?.trim() || null,
-  });
+  const { data: inserted, error } = await supabase
+    .from("projects")
+    .insert({
+      name: name.trim(),
+      url: normalizedUrl,
+      description: description.trim(),
+      icon_url: icon_url?.trim() || null,
+      owner: owner?.trim() || null,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     console.error("Supabase insert error:", error);
     return { success: false, error: "Failed to register project. Please try again." };
+  }
+
+  if (inserted?.id) {
+    fetchAndStorePreview(inserted.id, normalizedUrl).then((previewUrl) => {
+      if (previewUrl) {
+        supabase.from("projects").update({ preview_url: previewUrl }).eq("id", inserted.id).then(() => {
+          revalidatePath("/");
+        });
+      }
+    });
   }
 
   revalidatePath("/");
@@ -100,6 +115,14 @@ export async function updateProject(
     console.error("Supabase update error:", error);
     return { success: false, error: "Failed to update project. Please try again." };
   }
+
+  fetchAndStorePreview(id, normalizedUrl).then((previewUrl) => {
+    if (previewUrl) {
+      supabase.from("projects").update({ preview_url: previewUrl }).eq("id", id).then(() => {
+        revalidatePath("/");
+      });
+    }
+  });
 
   revalidatePath("/");
   return { success: true };

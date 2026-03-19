@@ -15,35 +15,23 @@ html {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(34, 211, 238, 0.25);
+  background: rgba(148, 163, 184, 0.25);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(34, 211, 238, 0.45);
+  background: rgba(148, 163, 184, 0.4);
 }
 
-/* Vibrant gradient background */
+/* Minimal gradient — soft top glow only */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background:
-    radial-gradient(ellipse 100% 60% at 30% 0%, rgba(34, 211, 238, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse 80% 50% at 90% 20%, rgba(167, 139, 250, 0.15) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 10% 90%, rgba(251, 146, 60, 0.08) 0%, transparent 45%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Subtle grid overlay */
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 48px 48px;
+  background: radial-gradient(
+    ellipse 100% 80% at 50% -20%,
+    rgba(59, 130, 246, 0.06) 0%,
+    transparent 50%
+  );
   pointer-events: none;
   z-index: 0;
 }

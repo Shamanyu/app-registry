@@ -1,0 +1,9 @@
+-- Storage bucket for project preview screenshots
+-- Create via Supabase Dashboard: Storage > New bucket
+--   - Name: project-previews
+--   - Public: Yes (so preview URLs work without auth)
+--   - File size limit: 512 KB
+--   - Allowed MIME types: image/jpeg, image/png, image/webp
+--
+-- Or create via API (requires service role):
+--   supabase.storage.createBucket('project-previews', { public: true })
