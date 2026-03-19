@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { ExternalLink, Globe, Pencil } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { getPreviewUrl } from "@/lib/preview";
@@ -15,6 +15,16 @@ export function AppCard({ project, large = false, onEdit }: AppCardProps) {
   const [previewError, setPreviewError] = useState(false);
   const [previewLoaded, setPreviewLoaded] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
+  const [liveStatus, setLiveStatus] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch(`/api/status?url=${encodeURIComponent(project.url)}`)
+      .then((r) => r.json())
+      .then((data) => { if (!cancelled) setLiveStatus(data.live); })
+      .catch(() => { if (!cancelled) setLiveStatus(false); });
+    return () => { cancelled = true; };
+  }, [project.url]);
 
   const hostname = (() => {
     try {
@@ -125,8 +135,22 @@ export function AppCard({ project, large = false, onEdit }: AppCardProps) {
         </p>
 
         <div className="flex items-center gap-1.5 pt-1">
-          <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
-          <span className="text-xs text-emerald-400/70">Live</span>
+          {liveStatus === null ? (
+            <>
+              <div className="w-1.5 h-1.5 rounded-full bg-amber-400/70 animate-pulse" />
+              <span className="text-xs text-amber-400/70">Checking…</span>
+            </>
+          ) : liveStatus ? (
+            <>
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" />
+              <span className="text-xs text-emerald-400/70">Live</span>
+            </>
+          ) : (
+            <>
+              <div className="w-1.5 h-1.5 rounded-full bg-red-400/80" />
+              <span className="text-xs text-red-400/70">Offline</span>
+            </>
+          )}
         </div>
       </div>
     </a>
