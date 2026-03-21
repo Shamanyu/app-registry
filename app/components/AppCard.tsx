@@ -55,15 +55,22 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
   const pop = project.popularity;
 
   return (
-    <div className="relative">
+    <div
+      className="
+        relative rounded-2xl p-px
+        bg-gradient-to-br from-white/[0.22] via-white/[0.08] to-stone-700/45
+        shadow-[0_20px_50px_-18px_rgba(0,0,0,0.78),0_0_0_1px_rgba(0,0,0,0.35)_inset]
+      "
+    >
     <a
       href={outboundHref}
       target="_blank"
       rel="noopener noreferrer"
       className={`
-        group relative flex flex-col overflow-hidden rounded-2xl
-        bg-white/5 backdrop-blur-xl border border-white/10
-        hover:border-amber-500/30 hover:bg-white/10
+        group relative flex flex-col overflow-hidden rounded-[15px]
+        bg-white/[0.065] backdrop-blur-xl
+        border border-white/[0.14] ring-1 ring-inset ring-white/[0.05]
+        hover:border-amber-400/40 hover:bg-white/[0.09] hover:ring-amber-500/10
         transition-all duration-200
         active:scale-[0.99] hover:-translate-y-0.5
         focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c0a09]
@@ -71,7 +78,13 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
       `}
     >
       {/* Website preview thumbnail */}
-      <div className={`relative w-full overflow-hidden ${large ? "h-36 sm:h-40" : "h-28 sm:h-32"}`}>
+      <div
+        className={`
+          relative w-full overflow-hidden shrink-0
+          border-b border-white/[0.12] bg-stone-950/30
+          ${large ? "h-36 sm:h-40" : "h-28 sm:h-32"}
+        `}
+      >
         {showPreview ? (
           <>
             {!previewLoaded && (
