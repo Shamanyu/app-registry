@@ -1,50 +1,44 @@
 # App Registry — Project Directory
 
-A modern, dark-mode project directory built with **Next.js 15** (App Router), **Tailwind CSS**, and **Supabase**.
+A modern, dark-mode project directory built with **Next.js** (App Router), **Tailwind CSS**, and **Supabase**.
 
 ## Features
 
 - Dynamic grid layout (large cards for 1–3 apps, standard grid for 4+)
 - Glassmorphism card design with dark theme
-- Add new apps via a modal form with server-side validation
-- Real-time data from Supabase with server-side rendering
+- Add and edit apps via modals with server-side validation
+- Data from Supabase with server-side rendering (homepage ISR, 5-minute revalidate)
 - Fully responsive (1 column on mobile → 4 columns on desktop)
-- Relative popularity hints on each card (from outbound clicks via `/go/[id]`, no raw counts)
+- **Outbound tracking**: card links go through `/go/[projectId]`, which logs a row in `project_opens` then redirects to the real URL
+- **Relative popularity**: short labels on cards (e.g. New, Growing, Popular lately) — no raw view counts; tiers are computed vs other listings on the same directory
+- **Sort order**: tiles ordered by **7-day opens** (highest first). Ties: **new listings** (added in the last 14 days with fewer than 3 opens in the last 7 days) rank above older listings with the same count, then **name A→Z**
+- After a click is logged, the app calls `revalidatePath("/")` and refreshes the grid when you return to the tab (focus / visibility), so updates show up without waiting only on the 5-minute ISR window
 
 ## Getting Started
 
-### 1. Create the Supabase table
+### 1. Supabase schema
 
-In your [Supabase SQL Editor](https://supabase.com/dashboard), run the schema from `supabase/schema.sql`:
+In your [Supabase SQL Editor](https://supabase.com/dashboard), run the **full** file [`supabase/schema.sql`](./supabase/schema.sql). It defines `projects`, preview/status caches, **`project_opens`** (click log), RLS policies, and indexes.
 
-```sql
-create table if not exists public.projects (
-  id          uuid primary key default gen_random_uuid(),
-  created_at  timestamp with time zone default now() not null,
-  name        text not null,
-  url         text not null,
-  description text not null,
-  icon_url    text
-);
+If you already applied an older schema, add anything you’re missing — at minimum the **`project_opens`** block at the bottom of `schema.sql` — so outbound tracking works.
 
-alter table public.projects enable row level security;
-
-create policy "Allow public read access"  on public.projects for select using (true);
-create policy "Allow public insert access" on public.projects for insert with check (true);
-```
-
-### 2. Configure environment variables
+### 2. Environment variables
 
 ```bash
 cp .env.local.example .env.local
 ```
 
-Fill in your Supabase project URL, anon key, and **service role key** (for storing preview screenshots and logging outbound clicks) from:
-`https://supabase.com/dashboard/project/<id>/settings/api`
+Fill in from [Project Settings → API](https://supabase.com/dashboard/project/_/settings/api):
 
-The `project_opens` table (in `supabase/schema.sql`) records clicks through `/go/[id]`; the service role is required because that table has no public RLS policies.
+| Variable | Purpose |
+|----------|---------|
+| `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Public anon key (reads `projects`, resolves `/go` target URL) |
+| `SUPABASE_SERVICE_ROLE_KEY` | **Server only**: Storage uploads for previews, **inserts into `project_opens`**, and **aggregating opens** for the homepage (table has no public RLS policies) |
 
-### 3. Create Storage bucket (for preview screenshots)
+Without the service role key, redirects from `/go` still work, but popularity and sorting will not update.
+
+### 3. Storage bucket (preview screenshots)
 
 In Supabase Dashboard: **Storage** → **New bucket** → Name: `project-previews`, Public: **Yes**
 
@@ -61,10 +55,10 @@ Open [http://localhost:3000](http://localhost:3000).
 
 1. Push this repo to GitHub.
 2. Import into [Vercel](https://vercel.com).
-3. Add the environment variables in Vercel's project settings:
+3. Add the environment variables in Vercel project settings:
    - `NEXT_PUBLIC_SUPABASE_URL`
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY` (for storing preview screenshots)
+   - `SUPABASE_SERVICE_ROLE_KEY` (previews **and** `project_opens` / popularity)
 4. Deploy — done!
 
 ## Project Structure
@@ -72,16 +66,21 @@ Open [http://localhost:3000](http://localhost:3000).
 ```
 app/
   components/
-    AppCard.tsx          # Individual project card
+    AppCard.tsx          # Card UI; link targets /go/[id]
     AppGrid.tsx          # Dynamic grid layout
-    AddAppModal.tsx      # Modal form for registering apps
-    LaunchpadClient.tsx  # Client shell (header + modal state)
-  actions.ts             # Server Action: registerProject()
+    AddAppModal.tsx      # Register new app
+    EditAppModal.tsx     # Edit existing app
+    LaunchpadClient.tsx  # Header, modals, focus/visibility refresh for fresh data
+  go/[id]/route.ts       # Log open + redirect; revalidatePath("/")
+  actions.ts             # Server actions: register / update project
   layout.tsx
-  page.tsx               # Server Component: fetches projects
+  page.tsx               # Fetches projects + popularity, status checks
 lib/
-  supabase.ts            # Supabase client + getProjects()
+  supabase.ts            # Anon client + getProjects()
+  supabase-admin.ts      # Service-role client (server only)
+  popularity.ts          # Open aggregates, labels, sort order
   types.ts               # TypeScript interfaces
+  preview*.ts            # Preview URL / cache / storage
 supabase/
-  schema.sql             # Database schema
+  schema.sql             # Full database schema
 ```
