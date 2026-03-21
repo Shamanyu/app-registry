@@ -73,3 +73,16 @@ create policy "Allow public insert on status_cache"
 
 create policy "Allow public update on status_cache"
   on public.status_cache for update using (true) with check (true);
+
+-- Outbound click log (inserts from Next.js server via service role only)
+create table if not exists public.project_opens (
+  id          uuid primary key default gen_random_uuid(),
+  opened_at   timestamp with time zone default now() not null,
+  project_id  uuid not null references public.projects (id) on delete cascade
+);
+
+create index if not exists project_opens_project_time
+  on public.project_opens (project_id, opened_at desc);
+
+alter table public.project_opens enable row level security;
+-- No policies: anon cannot read/write; service role bypasses RLS for inserts.

@@ -1,11 +1,12 @@
 import { getProjects } from "@/lib/supabase";
+import { enrichProjectsWithPopularity } from "@/lib/popularity";
 import { checkStatus } from "@/lib/status";
 import { LaunchpadClient } from "@/app/components/LaunchpadClient";
 
 export const revalidate = 300; // ISR: cache 5 min for fast repeat visits
 
 export default async function HomePage() {
-  const projects = await getProjects();
+  const projects = await enrichProjectsWithPopularity(await getProjects());
 
   const statusMap: Record<string, boolean> = {};
   await Promise.all(

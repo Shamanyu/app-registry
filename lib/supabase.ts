@@ -1,5 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
-import type { Project } from "./types";
+import type { Project, PopularityInfo } from "./types";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
@@ -17,5 +17,8 @@ export async function getProjects(): Promise<Project[]> {
     return [];
   }
 
-  return data ?? [];
+  return (data ?? []).map((row) => ({
+    ...row,
+    popularity: null as PopularityInfo | null,
+  }));
 }

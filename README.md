@@ -9,6 +9,7 @@ A modern, dark-mode project directory built with **Next.js 15** (App Router), **
 - Add new apps via a modal form with server-side validation
 - Real-time data from Supabase with server-side rendering
 - Fully responsive (1 column on mobile → 4 columns on desktop)
+- Relative popularity hints on each card (from outbound clicks via `/go/[id]`, no raw counts)
 
 ## Getting Started
 
@@ -38,8 +39,10 @@ create policy "Allow public insert access" on public.projects for insert with ch
 cp .env.local.example .env.local
 ```
 
-Fill in your Supabase project URL, anon key, and **service role key** (for storing preview screenshots) from:
+Fill in your Supabase project URL, anon key, and **service role key** (for storing preview screenshots and logging outbound clicks) from:
 `https://supabase.com/dashboard/project/<id>/settings/api`
+
+The `project_opens` table (in `supabase/schema.sql`) records clicks through `/go/[id]`; the service role is required because that table has no public RLS policies.
 
 ### 3. Create Storage bucket (for preview screenshots)
 

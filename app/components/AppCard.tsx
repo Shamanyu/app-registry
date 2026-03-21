@@ -2,8 +2,16 @@
 
 import { useState, useCallback } from "react";
 import { ExternalLink, Globe, Pencil } from "lucide-react";
-import type { Project } from "@/lib/types";
+import type { PopularityKind, Project } from "@/lib/types";
 import { getPreviewUrl } from "@/lib/preview";
+
+const POPULARITY_DOTS: Record<PopularityKind, number> = {
+  new: 1,
+  steady: 1,
+  often_opened: 2,
+  popular_lately: 3,
+  growing: 3,
+};
 
 interface AppCardProps {
   project: Project;
@@ -43,10 +51,13 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
     }
   }, [retryKey]);
 
+  const outboundHref = `/go/${project.id}`;
+  const pop = project.popularity;
+
   return (
     <div className="relative">
     <a
-      href={project.url}
+      href={outboundHref}
       target="_blank"
       rel="noopener noreferrer"
       className={`
@@ -129,18 +140,52 @@ export function AppCard({ project, live = false, large = false, onEdit }: AppCar
           {project.description}
         </p>
 
-        <div className="flex items-center gap-1.5 pt-1">
-          {live ? (
-            <>
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <span className="text-xs text-emerald-400/90">Live</span>
-            </>
-          ) : (
-            <>
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500/80" />
-              <span className="text-xs text-red-400/90">Offline</span>
-            </>
-          )}
+        <div className="flex items-center justify-between gap-2 pt-1 min-h-[1.25rem]">
+          <div className="flex items-center gap-1.5">
+            {live ? (
+              <>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                <span className="text-xs text-emerald-400/90">Live</span>
+              </>
+            ) : (
+              <>
+                <div className="w-1.5 h-1.5 rounded-full bg-red-500/80" />
+                <span className="text-xs text-red-400/90">Offline</span>
+              </>
+            )}
+          </div>
+          {pop ? (
+            <div className="flex items-center gap-1.5 min-w-0" title={pop.hint}>
+              <span
+                className={`flex items-center gap-0.5 flex-shrink-0 ${pop.kind === "growing" ? "motion-safe:animate-pulse" : ""}`}
+                aria-hidden
+              >
+                {Array.from({ length: 3 }, (_, i) => {
+                  const n = POPULARITY_DOTS[pop.kind];
+                  const filled = i < n;
+                  const emerald = pop.kind === "growing" && filled;
+                  const mutedNew = pop.kind === "new" && filled;
+                  return (
+                    <span
+                      key={i}
+                      className={`block w-1 h-1 rounded-full ${
+                        !filled
+                          ? "bg-stone-600/50"
+                          : mutedNew
+                            ? "bg-stone-500"
+                            : emerald
+                              ? "bg-emerald-400/90"
+                              : "bg-amber-500/85"
+                      }`}
+                    />
+                  );
+                })}
+              </span>
+              <span className="text-[0.65rem] sm:text-xs text-stone-500 truncate max-w-[7.5rem] sm:max-w-none">
+                {pop.label}
+              </span>
+            </div>
+          ) : null}
         </div>
       </div>
     </a>
