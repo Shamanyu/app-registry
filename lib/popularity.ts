@@ -97,7 +97,7 @@ function labelForProject(
 }
 
 /** Higher 7d opens first; ties favor listings still in the "new" window; then name A→Z. */
-function compareProjectsByPopularity(
+export function compareProjectsByPopularity(
   a: Project,
   b: Project,
   opens7d: Record<string, number>
@@ -118,26 +118,37 @@ function compareProjectsByPopularity(
   return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
 }
 
-function sortEnrichedByPopularity(
-  enriched: Project[],
-  opens7d: Record<string, number>
+/** Live apps first; within each group, same order as {@link compareProjectsByPopularity}. */
+export function sortProjectsForGrid(
+  projects: Project[],
+  opens7d: Record<string, number>,
+  statusMap: Record<string, boolean>
 ): Project[] {
-  return [...enriched].sort((a, b) => compareProjectsByPopularity(a, b, opens7d));
+  return [...projects].sort((a, b) => {
+    const liveA = statusMap[a.id] === true;
+    const liveB = statusMap[b.id] === true;
+    if (liveA !== liveB) {
+      return liveA ? -1 : 1;
+    }
+    return compareProjectsByPopularity(a, b, opens7d);
+  });
 }
 
-export async function enrichProjectsWithPopularity(projects: Project[]): Promise<Project[]> {
+export async function enrichProjectsWithPopularity(
+  projects: Project[]
+): Promise<{ projects: Project[]; opens7d: Record<string, number> }> {
   if (projects.length === 0) {
-    return projects;
+    return { projects, opens7d: {} };
   }
 
   const emptyOpens: Record<string, number> = {};
 
   const admin = getSupabaseAdmin();
   if (!admin) {
-    return sortEnrichedByPopularity(
-      projects.map((p) => ({ ...p, popularity: null })),
-      emptyOpens
-    );
+    return {
+      projects: projects.map((p) => ({ ...p, popularity: null })),
+      opens7d: emptyOpens,
+    };
   }
 
   const ids = projects.map((p) => p.id);
@@ -151,10 +162,10 @@ export async function enrichProjectsWithPopularity(projects: Project[]): Promise
 
   if (error) {
     console.error("project_opens fetch error:", error);
-    return sortEnrichedByPopularity(
-      projects.map((p) => ({ ...p, popularity: null })),
-      emptyOpens
-    );
+    return {
+      projects: projects.map((p) => ({ ...p, popularity: null })),
+      opens7d: emptyOpens,
+    };
   }
 
   const { opens7d, opensPrev7d } = buildOpenMaps(data ?? []);
@@ -164,5 +175,5 @@ export async function enrichProjectsWithPopularity(projects: Project[]): Promise
     popularity: labelForProject(p, opens7d, opensPrev7d, projects),
   }));
 
-  return sortEnrichedByPopularity(enriched, opens7d);
+  return { projects: enriched, opens7d };
 }

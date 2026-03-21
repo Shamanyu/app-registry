@@ -11,7 +11,7 @@ A modern, dark-mode project directory built with **Next.js** (App Router), **Tai
 - Fully responsive (1 column on mobile → 4 columns on desktop)
 - **Outbound tracking**: card links go through `/go/[projectId]`, which logs a row in `project_opens` then redirects to the real URL
 - **Relative popularity**: short labels on cards (e.g. New, Growing, Popular lately) — no raw view counts; tiers are computed vs other listings on the same directory
-- **Sort order**: tiles ordered by **7-day opens** (highest first). Ties: **new listings** (added in the last 14 days with fewer than 3 opens in the last 7 days) rank above older listings with the same count, then **name A→Z**
+- **Sort order**: **Live** apps first, **offline** last. Within each group: **7-day opens** (highest first). Ties: **new listings** (added in the last 14 days with fewer than 3 opens in the last 7 days) rank above older listings with the same count, then **name A→Z**
 - After a click is logged, the app calls `revalidatePath("/")` and refreshes the grid when you return to the tab (focus / visibility), so updates show up without waiting only on the 5-minute ISR window
 
 ## Getting Started
