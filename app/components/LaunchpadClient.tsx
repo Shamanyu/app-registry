@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import type { Project } from "@/lib/types";
 import { AppGrid } from "./AppGrid";
@@ -14,8 +15,54 @@ interface LaunchpadClientProps {
 }
 
 export function LaunchpadClient({ projects, statusMap }: LaunchpadClientProps) {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const firstWindowFocus = useRef(true);
+  const tabWasHidden = useRef(false);
+  const lastRefreshAt = useRef(0);
+
+  useEffect(() => {
+    let debounce: ReturnType<typeof setTimeout>;
+    const scheduleRefresh = () => {
+      clearTimeout(debounce);
+      debounce = setTimeout(() => {
+        const now = Date.now();
+        if (now - lastRefreshAt.current < 2500) {
+          return;
+        }
+        lastRefreshAt.current = now;
+        router.refresh();
+      }, 400);
+    };
+
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        tabWasHidden.current = true;
+        return;
+      }
+      if (document.visibilityState === "visible" && tabWasHidden.current) {
+        tabWasHidden.current = false;
+        scheduleRefresh();
+      }
+    };
+
+    const onFocus = () => {
+      if (firstWindowFocus.current) {
+        firstWindowFocus.current = false;
+        return;
+      }
+      scheduleRefresh();
+    };
+
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearTimeout(debounce);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("focus", onFocus);
+    };
+  }, [router]);
 
   return (
     <>

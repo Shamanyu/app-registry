@@ -96,14 +96,48 @@ function labelForProject(
   return { kind: "steady", label: "Steady", hint: HINTS.steady };
 }
 
+/** Higher 7d opens first; ties favor listings still in the "new" window; then name A→Z. */
+function compareProjectsByPopularity(
+  a: Project,
+  b: Project,
+  opens7d: Record<string, number>
+): number {
+  const oa = opens7d[a.id] ?? 0;
+  const ob = opens7d[b.id] ?? 0;
+  if (ob !== oa) {
+    return ob - oa;
+  }
+  const newA = isNewListing(a.created_at, oa);
+  const newB = isNewListing(b.created_at, ob);
+  if (newA && !newB) {
+    return -1;
+  }
+  if (!newA && newB) {
+    return 1;
+  }
+  return a.name.localeCompare(b.name, undefined, { sensitivity: "base" });
+}
+
+function sortEnrichedByPopularity(
+  enriched: Project[],
+  opens7d: Record<string, number>
+): Project[] {
+  return [...enriched].sort((a, b) => compareProjectsByPopularity(a, b, opens7d));
+}
+
 export async function enrichProjectsWithPopularity(projects: Project[]): Promise<Project[]> {
   if (projects.length === 0) {
     return projects;
   }
 
+  const emptyOpens: Record<string, number> = {};
+
   const admin = getSupabaseAdmin();
   if (!admin) {
-    return projects.map((p) => ({ ...p, popularity: null }));
+    return sortEnrichedByPopularity(
+      projects.map((p) => ({ ...p, popularity: null })),
+      emptyOpens
+    );
   }
 
   const ids = projects.map((p) => p.id);
@@ -117,13 +151,18 @@ export async function enrichProjectsWithPopularity(projects: Project[]): Promise
 
   if (error) {
     console.error("project_opens fetch error:", error);
-    return projects.map((p) => ({ ...p, popularity: null }));
+    return sortEnrichedByPopularity(
+      projects.map((p) => ({ ...p, popularity: null })),
+      emptyOpens
+    );
   }
 
   const { opens7d, opensPrev7d } = buildOpenMaps(data ?? []);
 
-  return projects.map((p) => ({
+  const enriched = projects.map((p) => ({
     ...p,
     popularity: labelForProject(p, opens7d, opensPrev7d, projects),
   }));
+
+  return sortEnrichedByPopularity(enriched, opens7d);
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
 
@@ -37,6 +38,8 @@ export async function GET(
     const { error: insertError } = await admin.from("project_opens").insert({ project_id: id });
     if (insertError) {
       console.error("project_opens insert error:", insertError);
+    } else {
+      revalidatePath("/");
     }
   }
 

@@ -7,10 +7,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function getProjects(): Promise<Project[]> {
-  const { data, error } = await supabase
-    .from("projects")
-    .select("*")
-    .order("name", { ascending: true });
+  const { data, error } = await supabase.from("projects").select("*");
 
   if (error) {
     console.error("Error fetching projects:", error);
